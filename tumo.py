@@ -6,3 +6,5 @@ Created on Fri Oct 20 15:23:41 2017
 @author: simonvanovereem
 """
 
+def test():
+	return 0
