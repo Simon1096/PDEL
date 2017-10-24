@@ -23,12 +23,14 @@ RI      = 8.        #[cm]
 phi     = m.pi/8.   #[rad]
 phil    = m.pi/4.   #[rad]
 
-n       = 3.       #[-]
+n       = 10.       #[-]
 dr      = R/n       #[cm]
 rc      = np.linspace(0.+0.5*dr,R-0.5*dr,n) #[cm]
 dtheta  = phil/n    #[cm]
 theta   = np.linspace(0.+0.5*dtheta,phil-0.5*dtheta,n)
 A       = np.zeros((int(n**2),int(n**2)))
+Un      = np.array(cd*np.exp(-(rc)**2))
+U       = np.zeros(int(n**2))
 
 def left():
     if j == 0:
@@ -110,8 +112,7 @@ def internal():
     Cs = dr/(rc[i-int(n)]*dtheta)
     Cw = ((rc[i-1]*0.5*dr)*dtheta)/dr
     return Cc/(rc[i]*dr*dtheta), Cn/(rc[i]*dr*dtheta), Ce/(rc[i]*dr*dtheta), Cs/(rc[i]*dr*dtheta), Cw/(rc[i]*dr*dtheta)
-    
-
+  
 for j in range(0,int(n)):
     for i in range(0,int(n)):
         if abs(rc[i] - R_g) < 0.5*dr or (abs(rc[i] - RI) < 0.5*dr and abs(theta[j] - phi) < 0.5*dtheta):
@@ -173,5 +174,20 @@ for j in range(0,int(n)):
             A[int(j*n+i)][int(j*n+i-n)] = Cs
             A[int(j*n+i)][int(j*n+i+1)] = Ce
             A[int(j*n+i)][int(j*n+i-1)] = Cw
+            
+    np.put(U,np.arange(int(j*n),int((j+1)*n)), Un)
 
-# - Choose time integration method
+def time():
+    global U
+    I   = np.identity(int(n**2))
+    dt  =  0.01
+    amp_mat = np.linalg.inv(I-dt*A)
+    for i in range(0,1357):
+        Unew = np.dot(amp_mat,U)
+        U = Unew
+    print sum(i > cd for i in U)
+    return U
+
+print time()
+
+
