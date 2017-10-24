@@ -23,7 +23,7 @@ RI      = 8.        #[cm]
 phi     = m.pi/8.   #[rad]
 phil    = m.pi/4.   #[rad]
 
-n       = 3.       #[-]
+n       = 10.       #[-]
 dr      = R/n       #[cm]
 rc      = np.linspace(0.+0.5*dr,R-0.5*dr,n) #[cm]
 dtheta  = phil/n    #[cm]
@@ -56,6 +56,7 @@ def internal():
       (0.5*dr*dtheta)/dr + 
       rc[i]*rho*dr*dtheta)
 
+  # R_x = 0.5 * dr
   Cn = dr/(rc[i]*dtheta) if j < n else 0
   Cs = dr/(rc[i-int(n)]*dtheta) if j != 0 else 0
   Ce = ((rc[i+1]*0.5*dr)*dtheta)/dr if i + 1 < n else 0
@@ -88,13 +89,15 @@ for j in range(0,int(n)):
 def time():
     global U
     I   = np.identity(int(n**2))
-    dt  =  0.01
+    dt  =  0.001
     amp_mat = np.linalg.inv(I-dt*A)
-    for i in range(0,1357):
+    iterations = 0;
+    while sum(c > cd for c in U) < 0.2 * len(U):
         Unew = np.dot(amp_mat,U)
         U = Unew
-    print(sum(i > cd for i in U))
+        iterations += 1
+    print("Number of steps taken: %d" % iterations)
+    print("Time till death: %f" % (iterations * dt))
     return U
 
-
-
+time()
