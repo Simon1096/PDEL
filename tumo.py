@@ -27,22 +27,114 @@ dr      = R/n       #[cm]
 rc      = np.linspace(0.+0.5*dr,R-0.5*dr,n) #[cm]
 dtheta  = phil/n    #[cm]
 theta   = np.linspace(0.+0.5*dtheta,phil-0.5*dtheta,n)
+A       = np.matrix((int(n**2),int(n**2)))
 
-for i in range(0,int(n)):
-    for j in range(0,int(n)):
+def left():
+    if j == 0:
+        Cc = -(dr/(rc[i]*dtheta) + 
+               (0.5*dr*dtheta)/dr +  
+               rc[i]*rho*dr*dtheta)
+        Cn = dr/(rc[i+int(n)]*dtheta)
+        Ce = ((rc[i+1]*0.5*dr)*dtheta)/dr
+        Cs = 0
+    elif j == int(n) - 1:
+        Cc = -(dr/(rc[i]*dtheta) + 
+               (0.5*dr*dtheta)/dr +  
+               rc[i]*rho*dr*dtheta)
+        Cn = 0
+        Ce = ((rc[i+1]*0.5*dr)*dtheta)/dr
+        Cs = dr/(rc[i-int(n)]*dtheta)
+    else:
+        Cc = -(2.*dr/(rc[i]*dtheta) + 
+               (0.5*dr*dtheta)/dr +  
+               rc[i]*rho*dr*dtheta)
+        Cn = dr/(rc[i+int(n)]*dtheta)
+        Ce = ((rc[i+1]*0.5*dr)*dtheta)/dr
+        Cs = dr/(rc[i-int(n)]*dtheta)
+    return Cc, Cn, Ce, Cs
+
+def lower():
+    if i == int(n) - 1:
+        Cc = -(dr/(rc[i]*dtheta) + 
+               (0.5*dr*dtheta)/dr + 
+               rc[i]*rho*dr*dtheta)
+        Cn = dr/(rc[i+int(n)]*dtheta)
+        Ce = 0
+        Cw = ((rc[i-1]*0.5*dr)*dtheta)/dr
+    else:
+        Cc = -(2.*dr/(rc[i]*dtheta) + 
+               (0.5*dr*dtheta)/dr + 
+               (0.5*dr*dtheta)/dr + 
+               rc[i]*rho*dr*dtheta)
+        Cn = dr/(rc[i+int(n)]*dtheta)
+        Ce = ((rc[i+1]*0.5*dr)*dtheta)/dr
+        Cw = ((rc[i-1]*0.5*dr)*dtheta)/dr
+    return Cc, Cn, Ce, Cw
+
+def right():
+    if j == int(n) - 1:
+        Cc = -(dr/(rc[i]*dtheta) + 
+               (0.5*dr*dtheta)/dr + 
+               rc[i]*rho*dr*dtheta)
+        Cn = 0
+        Cs = dr/(rc[i-int(n)]*dtheta)
+        Cw = ((rc[i-1]-0.5*dr)*dtheta)/dr
+    else:
+        Cc = -(2.*dr/(rc[i]*dtheta) + 
+               (0.5*dr*dtheta)/dr + 
+               rc[i]*rho*dr*dtheta)
+        Cn = dr/(rc[i+int(n)]*dtheta)
+        Cs = dr/(rc[i-int(n)]*dtheta)
+        Cw = ((rc[i-1]-0.5*dr)*dtheta)/dr 
+    return Cc, Cn, Cs, Cw
+
+def upper():
+    if i != 0 and i != int(n) - 1:
+        Cc = -(dr/(rc[i]*dtheta) + 
+               (0.5*dr*dtheta)/dr + 
+               (0.5*dr*dtheta)/dr + 
+               rc[i]*rho*dr*dtheta)
+        Ce = ((rc[i+1]+0.5*dr)*dtheta)/dr
+        Cs = dr/(rc[i-int(n)]*dtheta)
+        Cw = ((rc[i-1]-0.5*dr)*dtheta)/dr
+    return Cc, Ce, Cs, Cw
+
+def internal():
+    Cc = -(2.*dr/(rc[i]*dtheta) + 
+               (0.5*dr*dtheta)/dr + 
+               (0.5*dr*dtheta)/dr + 
+               rc[i]*rho*dr*dtheta)
+    Cn = dr/(rc[i+int(n)]*dtheta)
+    Ce = ((rc[i+1]+0.5*dr)*dtheta)/dr
+    Cs = dr/(rc[i-int(n)]*dtheta)
+    Cw = ((rc[i-1]-0.5*dr)*dtheta)/dr
+    return Cc, Cn, Ce, Cs, Cw
+    
+for j in range(0,int(n)):
+    for i in range(0,int(n)):
         if abs(rc[i] - R_g) < 0.5*dr or (abs(rc[i] - RI) < 0.5*dr and abs(theta[j] - phi) < 0.5*dtheta):
             rho = rho_avg
         elif rc[i] < R_g or (rc[i] > RI and theta[j] < phi):
             rho = rho_g
         else:
             rho = rho_w
-        # Internal nodes
-        Cc = -(2.*dr/(rc[i]*dtheta) + 
-               (rc[i+1]*dtheta)/dr + 
-               (rc[i-1]*dtheta)/dr + 
-               rc[i]*rho*dr*dtheta)
-        Cn = dr/(rc[i]*dtheta)
-        Ce = ((rc[i]+0.5*dr)*dtheta)/dr
-        Cs = dr/(rc[i]*dtheta)
-        Cw = ((rc[i]-0.5*dr)*dtheta)/dr
+            
+        if i == 0:
+            (Cc, Cn, Ce, Cs) = left()
+            A[j][i] = Cc
+            A[j][i+int(n)] = Cn
+            A[j][i+1] = Ce
+            A[j][]
+            
+        elif j == 0 and i > 0:
+            lower()
+
+        elif i == int(n) - 1 and j != 0:
+            right()
+            
+        elif j == int(n) - 1 and i != 0 and i != int(n) - 1:
+            upper()
+        
+        else:
+            internal()
         
