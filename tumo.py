@@ -52,7 +52,7 @@ def left():
         Cn = dr/(rc[i]*dtheta)
         Ce = ((rc[i+1]*0.5*dr)*dtheta)/dr
         Cs = dr/(rc[i]*dtheta)
-    return Cc, Cn, Ce, Cs
+    return Cc/(rc[i]*dr*dtheta), Cn/(rc[i]*dr*dtheta), Ce/(rc[i]*dr*dtheta), Cs/(rc[i]*dr*dtheta)
 
 def lower():
     if i == int(n) - 1:
@@ -70,7 +70,7 @@ def lower():
         Cn = dr/(rc[i]*dtheta)
         Ce = ((rc[i+1]*0.5*dr)*dtheta)/dr
         Cw = ((rc[i-1]*0.5*dr)*dtheta)/dr
-    return Cc, Cn, Ce, Cw
+    return Cc/(rc[i]*dr*dtheta), Cn/(rc[i]*dr*dtheta), Ce/(rc[i]*dr*dtheta), Cw/(rc[i]*dr*dtheta)
 
 def right():
     if j == int(n) - 1:
@@ -87,7 +87,7 @@ def right():
         Cn = dr/(rc[i]*dtheta)
         Cs = dr/(rc[i]*dtheta)
         Cw = ((rc[i-1]*0.5*dr)*dtheta)/dr
-    return Cc, Cn, Cs, Cw
+    return Cc/(rc[i]*dr*dtheta), Cn/(rc[i]*dr*dtheta), Cs/(rc[i]*dr*dtheta), Cw/(rc[i]*dr*dtheta)
 
 def upper():
     if i != 0 and i != int(n) - 1:
@@ -98,7 +98,7 @@ def upper():
         Ce = ((rc[i+1]*0.5*dr)*dtheta)/dr
         Cs = dr/(rc[i-int(n)]*dtheta)
         Cw = ((rc[i-1]*0.5*dr)*dtheta)/dr
-    return Cc, Ce, Cs, Cw
+    return Cc/(rc[i]*dr*dtheta), Ce/(rc[i]*dr*dtheta), Cs/(rc[i]*dr*dtheta), Cw/(rc[i]*dr*dtheta)
 
 def internal():
     Cc = -(2.*dr/(rc[i]*dtheta) + 
@@ -109,7 +109,7 @@ def internal():
     Ce = ((rc[i+1]*0.5*dr)*dtheta)/dr
     Cs = dr/(rc[i-int(n)]*dtheta)
     Cw = ((rc[i-1]*0.5*dr)*dtheta)/dr
-    return Cc, Cn, Ce, Cs, Cw
+    return Cc/(rc[i]*dr*dtheta), Cn/(rc[i]*dr*dtheta), Ce/(rc[i]*dr*dtheta), Cs/(rc[i]*dr*dtheta), Cw/(rc[i]*dr*dtheta)
     
 
 for j in range(0,int(n)):
@@ -174,6 +174,4 @@ for j in range(0,int(n)):
             A[int(j*n+i)][int(j*n+i+1)] = Ce
             A[int(j*n+i)][int(j*n+i-1)] = Cw
 
-# TODO: 
-# - Divide everything in the matrix by Rc
 # - Choose time integration method
