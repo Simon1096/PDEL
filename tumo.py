@@ -23,7 +23,7 @@ RI      = 8.        #[cm]
 phi     = m.pi/8.   #[rad]
 phil    = m.pi/4.   #[rad]
 
-n       = 10.       #[-]
+n       = 3.       #[-]
 dr      = R/n       #[cm]
 rc      = np.linspace(0.+0.5*dr,R-0.5*dr,n) #[cm]
 dtheta  = phil/n    #[cm]
@@ -51,7 +51,7 @@ def left():
                rc[i]*rho*dr*dtheta)
         Cn = dr/(rc[i]*dtheta)
         Ce = ((rc[i+1]*0.5*dr)*dtheta)/dr
-        Cs = dr/(rc[i-int(n)]*dtheta)
+        Cs = dr/(rc[i]*dtheta)
     return Cc, Cn, Ce, Cs
 
 def lower():
@@ -78,14 +78,14 @@ def right():
                (0.5*dr*dtheta)/dr + 
                rc[i]*rho*dr*dtheta)
         Cn = 0
-        Cs = dr/(rc[i-int(n)]*dtheta)
+        Cs = dr/(rc[i]*dtheta)
         Cw = ((rc[i-1]*0.5*dr)*dtheta)/dr
     else:
         Cc = -(2.*dr/(rc[i]*dtheta) + 
                (0.5*dr*dtheta)/dr + 
                rc[i]*rho*dr*dtheta)
         Cn = dr/(rc[i]*dtheta)
-        Cs = dr/(rc[i-int(n)]*dtheta)
+        Cs = dr/(rc[i]*dtheta)
         Cw = ((rc[i-1]*0.5*dr)*dtheta)/dr
     return Cc, Cn, Cs, Cw
 
