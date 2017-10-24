@@ -23,7 +23,7 @@ RI      = 8.        #[cm]
 phi     = m.pi/8.   #[rad]
 phil    = m.pi/4.   #[rad]
 
-n       = 10.       #[-]
+n       = 3.       #[-]
 dr      = R/n       #[cm]
 rc      = np.linspace(0.+0.5*dr,R-0.5*dr,n) #[cm]
 dtheta  = phil/n    #[cm]
@@ -32,86 +32,35 @@ A       = np.zeros((int(n**2),int(n**2)))
 Un      = np.array(cd*np.exp(-(rc)**2))
 U       = np.zeros(int(n**2))
 
-def left():
-    if j == 0:
-        Cc = -(dr/(rc[i]*dtheta) + 
-               (0.5*dr*dtheta)/dr +  
-               rc[i]*rho*dr*dtheta)
-        Cn = dr/(rc[i]*dtheta)
-        Ce = ((rc[i+1]*0.5*dr)*dtheta)/dr
-        Cs = 0
-    elif j == int(n) - 1:
-        Cc = -(dr/(rc[i]*dtheta) + 
-               (0.5*dr*dtheta)/dr +  
-               rc[i]*rho*dr*dtheta)
-        Cn = 0
-        Ce = ((rc[i+1]*0.5*dr)*dtheta)/dr
-        Cs = dr/(rc[i-int(n)]*dtheta)
-    else:
-        Cc = -(2.*dr/(rc[i]*dtheta) + 
-               (0.5*dr*dtheta)/dr +  
-               rc[i]*rho*dr*dtheta)
-        Cn = dr/(rc[i]*dtheta)
-        Ce = ((rc[i+1]*0.5*dr)*dtheta)/dr
-        Cs = dr/(rc[i]*dtheta)
-    return Cc/(rc[i]*dr*dtheta), Cn/(rc[i]*dr*dtheta), Ce/(rc[i]*dr*dtheta), Cs/(rc[i]*dr*dtheta)
-
-def lower():
-    if i == int(n) - 1:
-        Cc = -(dr/(rc[i]*dtheta) + 
-               (0.5*dr*dtheta)/dr + 
-               rc[i]*rho*dr*dtheta)
-        Cn = dr/(rc[i]*dtheta)
-        Ce = 0
-        Cw = ((rc[i-1]*0.5*dr)*dtheta)/dr
-    else:
-        Cc = -(2.*dr/(rc[i]*dtheta) + 
-               (0.5*dr*dtheta)/dr + 
-               (0.5*dr*dtheta)/dr + 
-               rc[i]*rho*dr*dtheta)
-        Cn = dr/(rc[i]*dtheta)
-        Ce = ((rc[i+1]*0.5*dr)*dtheta)/dr
-        Cw = ((rc[i-1]*0.5*dr)*dtheta)/dr
-    return Cc/(rc[i]*dr*dtheta), Cn/(rc[i]*dr*dtheta), Ce/(rc[i]*dr*dtheta), Cw/(rc[i]*dr*dtheta)
-
-def right():
-    if j == int(n) - 1:
-        Cc = -(dr/(rc[i]*dtheta) + 
-               (0.5*dr*dtheta)/dr + 
-               rc[i]*rho*dr*dtheta)
-        Cn = 0
-        Cs = dr/(rc[i]*dtheta)
-        Cw = ((rc[i-1]*0.5*dr)*dtheta)/dr
-    else:
-        Cc = -(2.*dr/(rc[i]*dtheta) + 
-               (0.5*dr*dtheta)/dr + 
-               rc[i]*rho*dr*dtheta)
-        Cn = dr/(rc[i]*dtheta)
-        Cs = dr/(rc[i]*dtheta)
-        Cw = ((rc[i-1]*0.5*dr)*dtheta)/dr
-    return Cc/(rc[i]*dr*dtheta), Cn/(rc[i]*dr*dtheta), Cs/(rc[i]*dr*dtheta), Cw/(rc[i]*dr*dtheta)
-
-def upper():
-    if i != 0 and i != int(n) - 1:
-        Cc = -(dr/(rc[i]*dtheta) + 
-               (0.5*dr*dtheta)/dr + 
-               (0.5*dr*dtheta)/dr + 
-               rc[i]*rho*dr*dtheta)
-        Ce = ((rc[i+1]*0.5*dr)*dtheta)/dr
-        Cs = dr/(rc[i-int(n)]*dtheta)
-        Cw = ((rc[i-1]*0.5*dr)*dtheta)/dr
-    return Cc/(rc[i]*dr*dtheta), Ce/(rc[i]*dr*dtheta), Cs/(rc[i]*dr*dtheta), Cw/(rc[i]*dr*dtheta)
-
 def internal():
+  if i == 0:
+    Cc = -(dr/(rc[i]*dtheta) + 
+      (0.5*dr*dtheta)/dr +  
+      rc[i]*rho*dr*dtheta)
+  elif i == n - 1:
+    Cc = -(dr/(rc[i]*dtheta) + 
+      (0.5*dr*dtheta)/dr + 
+      rc[i]*rho*dr*dtheta)
+  elif j == 0:
+    Cc = -(dr/(rc[i]*dtheta) + 
+      (0.5*dr*dtheta)/dr + 
+      rc[i]*rho*dr*dtheta)
+  elif j == n - 1:
+    Cc = -(dr/(rc[i]*dtheta) + 
+      (0.5*dr*dtheta)/dr + 
+      (0.5*dr*dtheta)/dr + 
+      rc[i]*rho*dr*dtheta)
+  else:
     Cc = -(2.*dr/(rc[i]*dtheta) + 
-               (0.5*dr*dtheta)/dr + 
-               (0.5*dr*dtheta)/dr + 
-               rc[i]*rho*dr*dtheta)
-    Cn = dr/(rc[i]*dtheta)
-    Ce = ((rc[i+1]*0.5*dr)*dtheta)/dr
-    Cs = dr/(rc[i-int(n)]*dtheta)
-    Cw = ((rc[i-1]*0.5*dr)*dtheta)/dr
-    return Cc/(rc[i]*dr*dtheta), Cn/(rc[i]*dr*dtheta), Ce/(rc[i]*dr*dtheta), Cs/(rc[i]*dr*dtheta), Cw/(rc[i]*dr*dtheta)
+      (0.5*dr*dtheta)/dr + 
+      (0.5*dr*dtheta)/dr + 
+      rc[i]*rho*dr*dtheta)
+
+  Cn = dr/(rc[i]*dtheta) if j < n else 0
+  Cs = dr/(rc[i-int(n)]*dtheta) if j != 0 else 0
+  Ce = ((rc[i+1]*0.5*dr)*dtheta)/dr if i + 1 < n else 0
+  Cw = ((rc[i-1]*0.5*dr)*dtheta)/dr if i != 0 else 0
+  return Cc/(rc[i]*dr*dtheta), Cn/(rc[i]*dr*dtheta), Ce/(rc[i]*dr*dtheta), Cs/(rc[i]*dr*dtheta), Cw/(rc[i]*dr*dtheta)
   
 for j in range(0,int(n)):
     for i in range(0,int(n)):
@@ -122,58 +71,17 @@ for j in range(0,int(n)):
         else:
             rho = rho_w
             
-        if i == 0:
-            (Cc, Cn, Ce, Cs) = left()
-            A[int(j*n)][int(j*n)] = Cc
+        (Cc, Cn, Ce, Cs, Cw) = internal()
+        A[int(j*n+i)][int(j*n+i)] = Cc
 
-            if (int(j*n+n) < n**2):
-              A[int(j*n)][int(j*n+n)] = Cn
-
-            if (int(j*n-n) >= 0):
-              A[int(j*n)][int(j*n-n)] = Cs
-
-            A[int(j*n)][int(j*n+1)] = Ce
-            
-        elif j == 0 and i > 0:
-            (Cc, Cn, Ce, Cw) = lower()
-
-            A[int(j*n+i)][int(j*n+i)] = Cc
-
-            if (int(j*n+i+n) < n**2):
-              A[int(j*n+i)][int(j*n+i+n)] = Cn
-
-            if (int(j*n+i+1) < n**2):
-              A[int(j*n+i)][int(j*n+i+1)] = Ce
-
-            A[int(j*n+i)][int(j*n+i-1)] = Cw
-
-
-        elif i == int(n) - 1 and j != 0:
-            (Cc, Cn, Cs, Cw) = right()
-            A[int(j*n+i)][int(j*n+i)] = Cc
-
-            if (int(j*n+i+n) < n**2):
-              A[int(j*n+i)][int(j*n+i+n)] = Cn
-
-            if (int(j*n-n+i) >= 0):
-              A[int(j*n+i)][int(j*n-n+i)] = Cs
-
-            A[int(j*n+i)][int(j*n+i-1)] = Cw
-            
-        elif j == int(n) - 1 and i != 0 and i != int(n) - 1:
-            (Cc, Ce, Cs, Cw) = upper()
-            A[int(j*n+i)][int(j*n+i)] = Cc
-            A[int(j*n+i)][int(j*n+i-n)] = Cs
-            A[int(j*n+i)][int(j*n+i+1)] = Ce
-            A[int(j*n+i)][int(j*n+i-1)] = Cw
-        
-        else:
-            (Cc, Cn, Ce, Cs, Cw) = internal()
-            A[int(j*n+i)][int(j*n+i)] = Cc
-            A[int(j*n+i)][int(j*n+i+n)] = Cn
-            A[int(j*n+i)][int(j*n+i-n)] = Cs
-            A[int(j*n+i)][int(j*n+i+1)] = Ce
-            A[int(j*n+i)][int(j*n+i-1)] = Cw
+        if j != n - 1:
+          A[int(j*n+i)][int(j*n+i+n)] = Cn
+        if j != 0:
+          A[int(j*n+i)][int(j*n+i-n)] = Cs
+        if i != n - 1:
+          A[int(j*n+i)][int(j*n+i+1)] = Ce
+        if i != 0:
+          A[int(j*n+i)][int(j*n+i-1)] = Cw
             
     np.put(U,np.arange(int(j*n),int((j+1)*n)), Un)
 
@@ -185,9 +93,8 @@ def time():
     for i in range(0,1357):
         Unew = np.dot(amp_mat,U)
         U = Unew
-    print sum(i > cd for i in U)
+    print(sum(i > cd for i in U))
     return U
 
-print time()
 
 
