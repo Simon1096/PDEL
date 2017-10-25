@@ -23,7 +23,7 @@ RI      = 8.        #[cm]
 phi     = m.pi/8.   #[rad]
 phil    = m.pi/4.   #[rad]
 
-n       = 10.       #[-]
+n       = 64.       #[-]
 dr      = R/n       #[cm]
 rc      = np.linspace(0.+0.5*dr,R-0.5*dr,n) #[cm]
 dtheta  = phil/n    #[cm]
@@ -58,7 +58,7 @@ def internal():
 
   # R_x = 0.5 * dr
   Cn = dr/(rc[i]*dtheta) if j < n else 0
-  Cs = dr/(rc[i-int(n)]*dtheta) if j != 0 else 0
+  Cs = dr/(rc[i]*dtheta) if j != 0 else 0
   Ce = ((rc[i+1]*0.5*dr)*dtheta)/dr if i + 1 < n else 0
   Cw = ((rc[i-1]*0.5*dr)*dtheta)/dr if i != 0 else 0
   return Cc/(rc[i]*dr*dtheta), Cn/(rc[i]*dr*dtheta), Ce/(rc[i]*dr*dtheta), Cs/(rc[i]*dr*dtheta), Cw/(rc[i]*dr*dtheta)
