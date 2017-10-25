@@ -97,7 +97,7 @@ def time():
         U = Unew
         iterations += 1
     print("Number of steps taken: %d" % iterations)
-    print("Time till death: %f" % (iterations * dt))
+    print("Time till death: %f days" % (iterations * dt))
     return U
 
 time()
