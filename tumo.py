@@ -21,10 +21,10 @@ cd		= 4.e4		#[cells/cm^2]
 R		= 10.		 #[cm]
 R_g		= 2.		#[cm]
 RI		= 8.		#[cm]
-phil	= m.pi/8.	 #[rad]
+phi		= m.pi/8.	 #[rad]
 phil	= m.pi/4.	 #[rad]
 
-N 		= [10, 20, 40]
+N 		= [10]
 dr 		= 0
 dtheta 	= 0
 rc 		= []
@@ -89,27 +89,27 @@ def initMatrix(n):
 		for i in range(0,n):
 			if abs(rc[i] - R_g) < 0.5*dr or (abs(rc[i] - RI) < 0.5*dr and abs(theta[j] - phi) < 0.5*dtheta):
 				rho = rho_avg
-			elif rc[i] < R_g or (rc[int(i)] > RI and theta[int(j)] < phi):
+			elif rc[i] < R_g or (rc[i] > RI and theta[j] < phi):
 				rho = rho_g
 			else:
 				rho = rho_w
 				
 			Cc, Cn, Ce, Cs, Cw = internal(i, j, n)
-			A[int(j*n+i)][int(j*n+i)] = Cc
+			A[j*n+i][j*n+i] = Cc
 
 			if j != n - 1:
-				A[int(j*n+i)][int(j*n+i+n)] = Cn
+				A[j*n+i][j*n+i+n] = Cn
 
 			if j != 0:
-				A[int(j*n+i)][int(j*n+i-n)] = Cs
+				A[j*n+i][j*n+i-n] = Cs
 
 			if i != n - 1:
-				A[int(j*n+i)][int(j*n+i+1)] = Ce
+				A[j*n+i][j*n+i+1] = Ce
 
 			if i != 0:
-				A[int(j*n+i)][int(j*n+i-1)] = Cw
+				A[j*n+i][j*n+i-1] = Cw
 				
-		np.put(U,np.arange(int(j*n),int((j+1)*n)), Un)
+		np.put(U,np.arange(j*n,(j+1)*n), Un)
 	return A, U
 
 def time(A, U, n):
@@ -152,40 +152,3 @@ for n in N:
 	A, U = initMatrix(n)
 	print("Number of nodes in each direction: %d" % n)
 	time(A, U, n)
-
-"""
-======================================
-Number of nodes in each direction: 10
-deltaT: 1.000
-Number of steps taken: 378
-Time till death: 1 year 1 week 5.750 dayss
-deltaT: 0.500
-Number of steps taken: 758
-Time till death: 1 year 1 week 6.750 dayss
-deltaT: 0.100
-Number of steps taken: 3792
-Time till death: 1 year 1 week 6.950 dayss
-======================================
-Number of nodes in each direction: 20
-deltaT: 1.000
-Number of steps taken: 388
-Time till death: 1 year 3 weeks 1.750 dayss
-deltaT: 0.500
-Number of steps taken: 778
-Time till death: 1 year 3 weeks 2.750 dayss
-deltaT: 0.100
-Number of steps taken: 3892
-Time till death: 1 year 3 weeks 2.950 dayss
-======================================
-Number of nodes in each direction: 40
-deltaT: 1.000
-Number of steps taken: 390
-Time till death: 1 year 3 weeks 3.750 dayss
-deltaT: 0.500
-Number of steps taken: 780
-Time till death: 1 year 3 weeks 3.750 dayss
-deltaT: 0.100
-Number of steps taken: 3905
-Time till death: 1 year 3 weeks 4.250 dayss
-======================================
-"""
