@@ -4,6 +4,7 @@
 Created on Fri Oct 20 15:23:41 2017
 
 @author: simonvanovereem
+@minion: jasonxie
 """
 
 #Imports
@@ -12,92 +13,179 @@ import numpy as np
 np.set_printoptions(threshold=np.nan)
 
 #Constants
-rho_w   = 0.01      #[day^-1]
-rho_g   = 0.005     #[day^-1]
+rho_w	= 0.01		#[day^-1]
+rho_g	= 0.005	 #[day^-1]
 rho_avg = 0.5*(rho_w + rho_g) #[day^-1]
-D       = 0.48e-2   #[cm^2/day]
-cd      = 4.e4      #[cells/cm^2]
-R       = 10.       #[cm]
-R_g     = 2.        #[cm]
-RI      = 8.        #[cm]
-phi     = m.pi/8.   #[rad]
-phil    = m.pi/4.   #[rad]
+D		= 0.48e-2	 #[cm^2/day]
+cd		= 4.e4		#[cells/cm^2]
+R		= 10.		 #[cm]
+R_g		= 2.		#[cm]
+RI		= 8.		#[cm]
+phil	= m.pi/8.	 #[rad]
+phil	= m.pi/4.	 #[rad]
 
-n       = 64.       #[-]
-dr      = R/n       #[cm]
-rc      = np.linspace(0.+0.5*dr,R-0.5*dr,n) #[cm]
-dtheta  = phil/n    #[cm]
-theta   = np.linspace(0.+0.5*dtheta,phil-0.5*dtheta,n)
-A       = np.zeros((int(n**2),int(n**2)))
-Un      = np.array(cd*np.exp(-(rc)**2))
-U       = np.zeros(int(n**2))
+N 		= [10, 20, 40]
+dr 		= 0
+dtheta 	= 0
+rc 		= []
+theta 	= []
 
-def internal():
-  if i == 0:
-    Cc = -(dr/(rc[i]*dtheta) + 
-      (0.5*dr*dtheta)/dr +  
-      rc[i]*rho*dr*dtheta)
-  elif i == n - 1:
-    Cc = -(dr/(rc[i]*dtheta) + 
-      (0.5*dr*dtheta)/dr + 
-      rc[i]*rho*dr*dtheta)
-  elif j == 0:
-    Cc = -(dr/(rc[i]*dtheta) + 
-      (0.5*dr*dtheta)/dr + 
-      rc[i]*rho*dr*dtheta)
-  elif j == n - 1:
-    Cc = -(dr/(rc[i]*dtheta) + 
-      (0.5*dr*dtheta)/dr + 
-      (0.5*dr*dtheta)/dr + 
-      rc[i]*rho*dr*dtheta)
-  else:
-    Cc = -(2.*dr/(rc[i]*dtheta) + 
-      (0.5*dr*dtheta)/dr + 
-      (0.5*dr*dtheta)/dr + 
-      rc[i]*rho*dr*dtheta)
+def internal(i, j, n):
+	if i == 0:
+		# Left side
+		if j == 0 or j == n - 1:
+			Cc = -D * (dr / (rc[i]*dtheta) + 
+				(rc[i]+0.5*dr) * dtheta / dr) + rc[i]*rho*dr*dtheta
+		else:
+			Cc = -D * (2.*dr / (rc[i]*dtheta) + 
+				(rc[i]+0.5*dr) * dtheta / dr) + rc[i]*rho*dr*dtheta
+	elif i == n - 1:
+		# Right side
+		if j == n - 1:
+			Cc = -D * (dr / (rc[i]*dtheta) + 
+				(rc[i]-0.5*dr) * dtheta / dr) + rc[i]*rho*dr*dtheta
+		else:
+			Cc = -D * (2.*dr / (rc[i]*dtheta) + 
+				(rc[i]-0.5*dr) * dtheta / dr) + rc[i]*rho*dr*dtheta
+	elif j == 0:
+		# Bottom side
+		if i == n - 1:
+			Cc = -D * (dr / (rc[i]*dtheta) + 
+				(rc[i]-0.5*dr) * dtheta / dr) + rc[i]*rho*dr*dtheta
+		else:
+			Cc = -D * (dr/(rc[i]*dtheta) + 
+				(rc[i]+0.5*dr) * dtheta / dr + 
+				(rc[i]-0.5*dr) * dtheta / dr) + rc[i]*rho*dr*dtheta
+	elif j == n - 1:
+		# Top side
+		Cc = -D * (dr / (rc[i]*dtheta) + 
+			(rc[i]+0.5*dr) * dtheta / dr + 
+			(rc[i]-0.5*dr) * dtheta / dr) + rc[i]*rho*dr*dtheta
+	else:
+		# Internal nodes
+		Cc = -D * (2.*dr / (rc[i]*dtheta) + 
+			(rc[i]+0.5*dr) * dtheta / dr + 
+			(rc[i]-0.5*dr) * dtheta / dr) + rc[i]*rho*dr*dtheta
 
-  # R_x = 0.5 * dr
-  Cn = dr/(rc[i]*dtheta) if j < n else 0
-  Cs = dr/(rc[i]*dtheta) if j != 0 else 0
-  Ce = ((rc[i+1]*0.5*dr)*dtheta)/dr if i + 1 < n else 0
-  Cw = ((rc[i-1]*0.5*dr)*dtheta)/dr if i != 0 else 0
-  return Cc/(rc[i]*dr*dtheta), Cn/(rc[i]*dr*dtheta), Ce/(rc[i]*dr*dtheta), Cs/(rc[i]*dr*dtheta), Cw/(rc[i]*dr*dtheta)
-  
-for j in range(0,int(n)):
-    for i in range(0,int(n)):
-        if abs(rc[i] - R_g) < 0.5*dr or (abs(rc[i] - RI) < 0.5*dr and abs(theta[j] - phi) < 0.5*dtheta):
-            rho = rho_avg
-        elif rc[i] < R_g or (rc[int(i%n)] > RI and theta[int(j%n)] < phi):
-            rho = rho_g
-        else:
-            rho = rho_w
-            
-        (Cc, Cn, Ce, Cs, Cw) = internal()
-        A[int(j*n+i)][int(j*n+i)] = Cc
+	# R_x = 0.5 * dr
+	Cn = D*dr / (rc[i]*dtheta) if j < n - 1 else 0
+	Cs = D*dr / (rc[i]*dtheta) if j != 0 else 0
+	Ce = D * ((rc[i]+0.5*dr)*dtheta) / dr if i < n-1 else 0
+	Cw = D * ((rc[i]-0.5*dr)*dtheta) / dr if i != 0 else 0
+	return Cc/(rc[i]*dr*dtheta), Cn/(rc[i]*dr*dtheta), Ce/(rc[i]*dr*dtheta), Cs/(rc[i]*dr*dtheta), Cw/(rc[i]*dr*dtheta)
 
-        if j != n - 1:
-          A[int(j*n+i)][int(j*n+i+n)] = Cn
-        if j != 0:
-          A[int(j*n+i)][int(j*n+i-n)] = Cs
-        if i != n - 1:
-          A[int(j*n+i)][int(j*n+i+1)] = Ce
-        if i != 0:
-          A[int(j*n+i)][int(j*n+i-1)] = Cw
-            
-    np.put(U,np.arange(int(j*n),int((j+1)*n)), Un)
+def initMatrix(n):
+	global rho, rc, theta, dtheta, dr
 
-def time():
-    global U
-    I   = np.identity(int(n**2))
-    dt  =  0.001
-    amp_mat = np.linalg.inv(I-dt*A)
-    iterations = 0;
-    while sum(c > cd for c in U) < 0.2 * len(U):
-        Unew = np.dot(amp_mat,U)
-        U = Unew
-        iterations += 1
-    print("Number of steps taken: %d" % iterations)
-    print("Time till death: %f days" % (iterations * dt))
-    return U
+	dr		= R / n
+	rc		= np.linspace(0.+0.5*dr,R-0.5*dr,n)
+	dtheta	= phil / n
+	theta	= np.linspace(0.+0.5*dtheta,phil-0.5*dtheta,n)
 
-time()
+	A		= np.zeros((n**2,n**2))
+	Un		= np.array(cd*np.exp(-(rc)**2))
+	U		= np.zeros(n**2)
+	for j in range(0,n):
+		for i in range(0,n):
+			if abs(rc[i] - R_g) < 0.5*dr or (abs(rc[i] - RI) < 0.5*dr and abs(theta[j] - phi) < 0.5*dtheta):
+				rho = rho_avg
+			elif rc[i] < R_g or (rc[int(i)] > RI and theta[int(j)] < phi):
+				rho = rho_g
+			else:
+				rho = rho_w
+				
+			Cc, Cn, Ce, Cs, Cw = internal(i, j, n)
+			A[int(j*n+i)][int(j*n+i)] = Cc
+
+			if j != n - 1:
+				A[int(j*n+i)][int(j*n+i+n)] = Cn
+
+			if j != 0:
+				A[int(j*n+i)][int(j*n+i-n)] = Cs
+
+			if i != n - 1:
+				A[int(j*n+i)][int(j*n+i+1)] = Ce
+
+			if i != 0:
+				A[int(j*n+i)][int(j*n+i-1)] = Cw
+				
+		np.put(U,np.arange(int(j*n),int((j+1)*n)), Un)
+	return A, U
+
+def time(A, U, n):
+	I = np.identity(n**2)
+	T = [1, 0.5, 0.1]
+	for dt in T:
+		Ut = U
+		amp_mat = np.linalg.inv(I-dt*A)
+		iterations = 0;
+		while sum(c > cd for c in Ut) < 0.2 * len(U):
+			Unew = np.dot(amp_mat,Ut)
+			Ut = Unew
+			iterations += 1
+		print("deltaT: %.3f\nNumber of steps taken: %d" % (dt, iterations))
+		tod = iterations * dt
+		todStr = ""
+		if tod > 365.25:
+			count = int(tod / 365.25)
+			todStr += "%d year" % count
+			tod -= count * 365.25
+			if count > 1:
+				todStr += "s"
+		if tod > 7:
+			count = int(tod / 7)
+			todStr += " %d week" % count
+			tod -= count * 7
+			if count > 1:
+				todStr += "s"
+		if tod > 0:
+			todStr += " %.3f days" % tod
+			if tod > 1:
+				todStr += "s"
+
+		print("Time till death: " + todStr)
+	print("======================================")
+	return U
+
+print("======================================")
+for n in N:
+	A, U = initMatrix(n)
+	print("Number of nodes in each direction: %d" % n)
+	time(A, U, n)
+
+"""
+======================================
+Number of nodes in each direction: 10
+deltaT: 1.000
+Number of steps taken: 378
+Time till death: 1 year 1 week 5.750 dayss
+deltaT: 0.500
+Number of steps taken: 758
+Time till death: 1 year 1 week 6.750 dayss
+deltaT: 0.100
+Number of steps taken: 3792
+Time till death: 1 year 1 week 6.950 dayss
+======================================
+Number of nodes in each direction: 20
+deltaT: 1.000
+Number of steps taken: 388
+Time till death: 1 year 3 weeks 1.750 dayss
+deltaT: 0.500
+Number of steps taken: 778
+Time till death: 1 year 3 weeks 2.750 dayss
+deltaT: 0.100
+Number of steps taken: 3892
+Time till death: 1 year 3 weeks 2.950 dayss
+======================================
+Number of nodes in each direction: 40
+deltaT: 1.000
+Number of steps taken: 390
+Time till death: 1 year 3 weeks 3.750 dayss
+deltaT: 0.500
+Number of steps taken: 780
+Time till death: 1 year 3 weeks 3.750 dayss
+deltaT: 0.100
+Number of steps taken: 3905
+Time till death: 1 year 3 weeks 4.250 dayss
+======================================
+"""
