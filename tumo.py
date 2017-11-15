@@ -10,7 +10,10 @@ Created on Fri Oct 20 15:23:41 2017
 #Imports
 import math as m
 import numpy as np
-import matplotlib.pyplot
+import matplotlib.pyplot as plt
+
+fig = plt.figure()
+ax = fig.gca(projection='3d')
 
 #Constants
 rho_w	= 0.01		#[day^-1]
@@ -24,7 +27,7 @@ RI		= 8.		#[cm]
 phi		= m.pi/8.	 #[rad]
 phil	= m.pi/4.	 #[rad]
 
-N 		= [10, 20, 40]
+N 		= [10]
 dBr		= 1.
 dBt 	= phil / 10;
 dr 		= 0
@@ -126,9 +129,15 @@ def initMatrix(n):
 		np.put(U,np.arange(j*n,(j+1)*n), Un)
 	return A, U
 
+
 def time(A, U, n):
 	I = np.identity(n**2)
 	T = [1, 0.5, 0.1]
+
+	x = np.linspace(0.5*dr, R - 0.5*dr, n)
+	y = np.linspace(0.5*dtheta, phil - 0.5*dtheta, n)
+	x,y = np.meshgrid(x,y)
+
 	for dt in T:
 		Ut = U
 		amp_mat = np.linalg.inv(I-dt*A)
@@ -157,6 +166,13 @@ def time(A, U, n):
 			if tod > 1:
 				todStr += "s"
 		print("Time till death: %s (%.3f days)" % (todStr, iterations * dt))
+		plotM = np.zeros((n,n))
+		for i in range(1, n-1):
+			np.put(plotM[i], Ut[(i-1)*n:i*n])
+		ax.plot_surface(x, y, plotM, cmap="jet", rstride=1, cstride=1)
+		# plt.savefig("")
+		plt.show();
+
 	print("======================================")
 	return U
 
@@ -164,4 +180,5 @@ print("======================================")
 for n in N:
 	A, U = initMatrix(n)
 	print("Number of nodes in each direction: %d" % n)
+
 	time(A, U, n)
