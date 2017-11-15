@@ -10,7 +10,7 @@ Created on Fri Oct 20 15:23:41 2017
 #Imports
 import math as m
 import numpy as np
-np.set_printoptions(threshold=np.nan)
+import matplotlib.pyplot
 
 #Constants
 rho_w	= 0.01		#[day^-1]
@@ -33,24 +33,28 @@ rc 		= []
 theta 	= []
 
 def matrixRow(i, j, n):
+	# Left side
 	if i == 0:
-		# Left side
+		# Corners
 		if j == 0 or j == n - 1:
 			Cc = -D * (dr / (rc[i]*dtheta) + 
 				(rc[i]+0.5*dr) * dtheta / dr) + rc[i]*rho*dr*dtheta
+		# Inbetween
 		else:
 			Cc = -D * (2.*dr / (rc[i]*dtheta) + 
 				(rc[i]+0.5*dr) * dtheta / dr) + rc[i]*rho*dr*dtheta
+	# Right side
 	elif i == n - 1:
-		# Right side
+		# Upper corner
 		if j == n - 1:
 			Cc = -D * (dr / (rc[i]*dtheta) + 
 				(rc[i]-0.5*dr) * dtheta / dr) + rc[i]*rho*dr*dtheta
 		else:
 			Cc = -D * (2.*dr / (rc[i]*dtheta) + 
 				(rc[i]-0.5*dr) * dtheta / dr) + rc[i]*rho*dr*dtheta
+	# Bottom side
 	elif j == 0:
-		# Bottom side
+		# Bottom right corner
 		if i == n - 1:
 			Cc = -D * (dr / (rc[i]*dtheta) + 
 				(rc[i]-0.5*dr) * dtheta / dr) + rc[i]*rho*dr*dtheta
@@ -58,32 +62,31 @@ def matrixRow(i, j, n):
 			Cc = -D * (dr/(rc[i]*dtheta) + 
 				(rc[i]+0.5*dr) * dtheta / dr + 
 				(rc[i]-0.5*dr) * dtheta / dr) + rc[i]*rho*dr*dtheta
+	# Top side
 	elif j == n - 1:
-		# Top side
 		Cc = -D * (dr / (rc[i]*dtheta) + 
 			(rc[i]+0.5*dr) * dtheta / dr + 
 			(rc[i]-0.5*dr) * dtheta / dr) + rc[i]*rho*dr*dtheta
+	# Internal nodes
 	else:
-		# Internal nodes
 		Cc = -D * (2.*dr / (rc[i]*dtheta) + 
 			(rc[i]+0.5*dr) * dtheta / dr + 
 			(rc[i]-0.5*dr) * dtheta / dr) + rc[i]*rho*dr*dtheta
 
 	# R_x = 0.5 * dr
-	Cn = D*dr / (rc[i]*dtheta) if j < n - 1 else 0
+	Cn = D*dr / (rc[i]*dtheta) if j != n - 1 else 0
 	Cs = D*dr / (rc[i]*dtheta) if j != 0 else 0
-	Ce = D * ((rc[i]+0.5*dr)*dtheta) / dr if i < n-1 else 0
+	Ce = D * ((rc[i]+0.5*dr)*dtheta) / dr if i != n-1 else 0
 	Cw = D * ((rc[i]-0.5*dr)*dtheta) / dr if i != 0 else 0
 	return Cc/(rc[i]*dr*dtheta), Cn/(rc[i]*dr*dtheta), Ce/(rc[i]*dr*dtheta), Cs/(rc[i]*dr*dtheta), Cw/(rc[i]*dr*dtheta)
-
 
 def initMatrix(n):
 	global rho, rc, theta, dtheta, dr
 
 	dr		= R / n
-	rc		= np.linspace(0.+0.5*dr,R-0.5*dr,n)
+	rc		= np.linspace(0.5*dr,R-0.5*dr,n)
 	dtheta	= phil / n
-	theta	= np.linspace(0.+0.5*dtheta,phil-0.5*dtheta,n)
+	theta	= np.linspace(0.5*dtheta,phil-0.5*dtheta,n)
 
 	# The 
 	A		= np.zeros((n**2,n**2))
@@ -91,14 +94,17 @@ def initMatrix(n):
 	U		= np.zeros(n**2)
 	for j in range(0,n):
 		for i in range(0,n):
+			# Setting the weighted rho if applicable
 			if abs(rc[i] - R_g) < 0.5 * dBr:
 				rho = (rho_w - rho_g) / dBr * (rc[i] - R_g) + rho_avg
 			elif abs(rc[i] - RI) < 0.5 * dBr and theta[j] - phi + 0.5 * dBt < 0:
-				rho = (rho_g - rho_w) / dBr * (rc[i] - R_g) + rho_avg
+				rho = (rho_g - rho_w) / dBr * (rc[i] - RI) + rho_avg
 				if abs(theta[j] - phi) < 0.5 * dBt:
-					rho = 0.5 * rho + 0.5 * (rho_g - rho_w) / dBt * (theta[j] - phi) + rho_avg
+					rho = 0.5 * rho + 0.5 * ((rho_w - rho_g) / dBt * (theta[j] - phi) + rho_avg)
 			elif rc[i] - RI > 0 and abs(theta[j] - phi) < 0.5 * dBt:
 				rho = (rho_w - rho_g) / dBt * (theta[j] - phi) + rho_avg
+			elif rc[i] < R_g or (rc[i] > RI and theta[j] < phi):
+				rho = rho_g
 			else:
 				rho = rho_w
 				
@@ -150,8 +156,7 @@ def time(A, U, n):
 			todStr += " %.3f day" % tod
 			if tod > 1:
 				todStr += "s"
-
-		print("Time till death: " + todStr)
+		print("Time till death: %s (%.3f days)" % (todStr, iterations * dt))
 	print("======================================")
 	return U
 
