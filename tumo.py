@@ -15,7 +15,7 @@ np.set_printoptions(threshold=np.nan)
 #Constants
 rho_w	= 0.01		#[day^-1]
 rho_g	= 0.005	 #[day^-1]
-rho_avg = 0.5*(rho_w + rho_g) #[day^-1]
+rho_avg = 0.5 * rho_w + 0.5 * rho_g
 D		= 0.48e-2	 #[cm^2/day]
 cd		= 4.e4		#[cells/cm^2]
 R		= 10.		 #[cm]
@@ -24,13 +24,15 @@ RI		= 8.		#[cm]
 phi		= m.pi/8.	 #[rad]
 phil	= m.pi/4.	 #[rad]
 
-N 		= [10]
+N 		= [10, 20, 40]
+dBr		= 1.
+dBt 	= phil / 10;
 dr 		= 0
 dtheta 	= 0
 rc 		= []
 theta 	= []
 
-def internal(i, j, n):
+def matrixRow(i, j, n):
 	if i == 0:
 		# Left side
 		if j == 0 or j == n - 1:
@@ -74,6 +76,7 @@ def internal(i, j, n):
 	Cw = D * ((rc[i]-0.5*dr)*dtheta) / dr if i != 0 else 0
 	return Cc/(rc[i]*dr*dtheta), Cn/(rc[i]*dr*dtheta), Ce/(rc[i]*dr*dtheta), Cs/(rc[i]*dr*dtheta), Cw/(rc[i]*dr*dtheta)
 
+
 def initMatrix(n):
 	global rho, rc, theta, dtheta, dr
 
@@ -82,19 +85,24 @@ def initMatrix(n):
 	dtheta	= phil / n
 	theta	= np.linspace(0.+0.5*dtheta,phil-0.5*dtheta,n)
 
+	# The 
 	A		= np.zeros((n**2,n**2))
 	Un		= np.array(cd*np.exp(-(rc)**2))
 	U		= np.zeros(n**2)
 	for j in range(0,n):
 		for i in range(0,n):
-			if abs(rc[i] - R_g) < 0.5*dr or (abs(rc[i] - RI) < 0.5*dr and abs(theta[j] - phi) < 0.5*dtheta):
-				rho = rho_avg
-			elif rc[i] < R_g or (rc[i] > RI and theta[j] < phi):
-				rho = rho_g
+			if abs(rc[i] - R_g) < 0.5 * dBr:
+				rho = (rho_w - rho_g) / dBr * (rc[i] - R_g) + rho_avg
+			elif abs(rc[i] - RI) < 0.5 * dBr and theta[j] - phi + 0.5 * dBt < 0:
+				rho = (rho_g - rho_w) / dBr * (rc[i] - R_g) + rho_avg
+				if abs(theta[j] - phi) < 0.5 * dBt:
+					rho = 0.5 * rho + 0.5 * (rho_g - rho_w) / dBt * (theta[j] - phi) + rho_avg
+			elif rc[i] - RI > 0 and abs(theta[j] - phi) < 0.5 * dBt:
+				rho = (rho_w - rho_g) / dBt * (theta[j] - phi) + rho_avg
 			else:
 				rho = rho_w
 				
-			Cc, Cn, Ce, Cs, Cw = internal(i, j, n)
+			Cc, Cn, Ce, Cs, Cw = matrixRow(i, j, n)
 			A[j*n+i][j*n+i] = Cc
 
 			if j != n - 1:
@@ -139,7 +147,7 @@ def time(A, U, n):
 			if count > 1:
 				todStr += "s"
 		if tod > 0:
-			todStr += " %.3f days" % tod
+			todStr += " %.3f day" % tod
 			if tod > 1:
 				todStr += "s"
 
